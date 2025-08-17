@@ -12,7 +12,7 @@ from .. import __version__
 
 class FetchIPSW:
 
-    def __init__(self, builds_to_ignore: list = [], minimum_version: str = "15", maximum_version: str = "15.99.99") -> None:
+    def __init__(self, builds_to_ignore: list = [], minimum_version: str = "15", maximum_version: str = "26.99.99") -> None:
         self._builds_to_ignore = builds_to_ignore
         self._minimum_version  = packaging.version.parse(minimum_version)
         self._maximum_version  = packaging.version.parse(maximum_version)

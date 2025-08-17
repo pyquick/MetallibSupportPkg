@@ -14,19 +14,11 @@ concurrency:
 jobs:
   build:
     name: CI - Patch latest Sequoia metallib's
-    runs-on: macos-latest
+    runs-on: macos-15
 
     env:
       # GitHub Releases API
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # PKG Signing
-      ORG_MAC_DEVELOPER_ID_INSTALLER_IDENTITY: ${{ secrets.ORG_MAC_DEVELOPER_ID_INSTALLER_IDENTITY }}
-
-      # Notarization
-      ORG_MAC_NOTARIZATION_TEAM_ID: ${{ secrets.ORG_MAC_NOTARIZATION_TEAM_ID }}
-      ORG_MAC_NOTARIZATION_APPLE_ID: ${{ secrets.ORG_MAC_NOTARIZATION_APPLE_ID }}
-      ORG_MAC_NOTARIZATION_PASSWORD: ${{ secrets.ORG_MAC_NOTARIZATION_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -36,11 +28,8 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Import Installer Signing Certificate
-        uses: dhinakg/import-codesign-certs@master
-        with:
-          p12-file-base64: ${{ secrets.ORG_MAC_DEVELOPER_ID_INSTALLER_CERT_P12_BASE64 }}
-          p12-password: ${{ secrets.ORG_MAC_DEVELOPER_ID_INSTALLER_CERT_P12_PASSWORD }}
+      
+       
 
       - name: Free up space
         run: |
@@ -81,7 +70,7 @@ jobs:
 
       - name: Build Package
         if: steps.fetch.outputs.BACKUP_FOLDER != ''
-        run: python3 metallib.py --build-pkg ${{ steps.fetch.outputs.BACKUP_FOLDER }} --pkg-signing-identity "${{env.ORG_MAC_DEVELOPER_ID_INSTALLER_IDENTITY}}" --notarization-team-id "${{env.ORG_MAC_NOTARIZATION_TEAM_ID}}" --notarization-apple-id "${{env.ORG_MAC_NOTARIZATION_APPLE_ID}}" --notarization-password "${{env.ORG_MAC_NOTARIZATION_PASSWORD}}"
+        run: python3 metallib.py --build-pkg ${{ steps.fetch.outputs.BACKUP_FOLDER }} 
 
       - name: Upload metal libraries to Artifacts
         if: steps.fetch.outputs.BACKUP_FOLDER != ''
