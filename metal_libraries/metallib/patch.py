@@ -205,6 +205,10 @@ class MetallibPatch:
                     return line.replace(match.group(0), f"i64 {match.group(1)}")
                 return line.replace("[2 x i64]", "i64")
 
+            # Add support for patching AIR version 2.8 to 2.6
+            if r'!{i32 2, i32 8, i32 0}' in line:
+                return line.replace("i32 8", "i32 6")
+
             return line
 
         ll_data = Path(input).read_text()
