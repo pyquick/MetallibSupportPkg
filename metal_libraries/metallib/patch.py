@@ -10,7 +10,7 @@ Based on:
 
 -----------------------
 Changes implemented:
-1. Enforce '-mmacos-version-min=14.0' when recompiling .ll to .air
+1. Enforce '-mmacos-version-min=26.0' when recompiling .ll to .air
    - Resolves iOSSupport metallib compiling on Sequoia
 2. Add support for thinning .metallib files
    - Resolves crashing on QuartzCore metallib
@@ -67,7 +67,7 @@ class MetallibPatch:
         """
         output = Path(input).with_suffix(".air")
 
-        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", "-mmacos-version-min=14.0", input, "-o", output], capture_output=True, text=True)
+        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", "-mmacos-version-min=26.0", input, "-o", output], capture_output=True, text=True)
         if result.returncode != 0:
             log(result)
             raise Exception(f"Failed to recompile {input}")
