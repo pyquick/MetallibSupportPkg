@@ -10,7 +10,7 @@ Based on:
 
 -----------------------
 Changes implemented:
-1. Enforce '-mmacos-version-min=26.0' when recompiling .ll to .air
+1. Enforce '-mmacos-version-min=14.0' when recompiling .ll to .air
    - Resolves iOSSupport metallib compiling on Sequoia
 2. Add support for thinning .metallib files
    - Resolves crashing on QuartzCore metallib
@@ -67,7 +67,7 @@ class MetallibPatch:
         """
         output = Path(input).with_suffix(".air")
 
-        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", "-mmacos-version-min=26.0", input, "-o", output], capture_output=True, text=True)
+        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", "-std=ios-metal2.3", "-mmacos-version-min=14.0", input, "-o", output], capture_output=True, text=True)
         if result.returncode != 0:
             log(result)
             raise Exception(f"Failed to recompile {input}")
@@ -193,10 +193,18 @@ class MetallibPatch:
         Patch AIR versioning to 2.6
         """
         def patch_line(line: str) -> str:
+            
+            if r'!{i32 2, i32 8, i32 0}' in line:
+                return line.replace("i32 8", "i32 6")
+
+
             if r'!{i32 2, i32 7, i32 0}' in line:
                 return line.replace("i32 7", "i32 6")
 
             if r'!{!"Metal", i32 3, i32 2, i32 0}' in line:
+                return line.replace("i32 2", "i32 1")
+               
+            if r'!{!"Metal", i32 4, i32 2, i32 0}' in line:
                 return line.replace("i32 2", "i32 1")
 
             if r'@__air_sampler_state' in line and r'[2 x i64]' in line:
@@ -204,10 +212,6 @@ class MetallibPatch:
                 if match:
                     return line.replace(match.group(0), f"i64 {match.group(1)}")
                 return line.replace("[2 x i64]", "i64")
-
-            # Add support for patching AIR version 2.8 to 2.6
-            if r'!{i32 2, i32 8, i32 0}' in line:
-                return line.replace("i32 8", "i32 6")
 
             return line
 
