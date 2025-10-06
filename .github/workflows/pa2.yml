@@ -1,0 +1,65 @@
+name: CI - Pa2-> Test Tahoe
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}
+
+jobs:
+  build:
+    name: CI - Patch latest Tahoe metallib's
+    runs-on: macos-15
+
+    env:
+      # GitHub Releases API
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+    
+
+      - name: Free up space
+        run: |
+          mkdir empty_dir
+          rsync -a --delete empty_dir/ /Applications/Xcode_16.1_beta.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_16_beta_6.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.3.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.2.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.1.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.0.1.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_14.3.1.app/
+          rsync -a --delete empty_dir/ /Users/runner/Library/Android/sdk/
+
+      - name: Install dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Download latest Sequoia IPSW
+        run: echo "IPSW_FILE=$(python3 metallib.py --download --continuous-integration)" >> $GITHUB_OUTPUT
+        id: download
+
+      - name: Extract system volume
+        if: steps.download.outputs.IPSW_FILE != ''
+        run: echo "DMG_FILE=$(python3 metallib.py --extract ${{ steps.download.outputs.IPSW_FILE }})" >> $GITHUB_OUTPUT
+        id: extract
+
+      
+
+      - name: Upload metal libraries to Artifacts
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: MetallibSupportDMG
+          path: ${{ steps.extract.outputs.DMG_FILE }}
+
+
+      
