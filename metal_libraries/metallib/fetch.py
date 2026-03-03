@@ -20,13 +20,16 @@ class MetallibFetch:
     def _known_broken_files(self) -> list[str]:
         """
         Known broken metallib files
+
+        Uses broad prefix matching for GPUCompiler to handle version changes
+        across macOS versions (e.g., 32023 for macOS 15, potentially different for macOS 26).
         """
         return [
             # Error: The file was not recognized as a valid object file
-            "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/32023/Libraries/lib/clang", #/32023.335/lib/darwin/libtracepoint_rt_iosmac.metallib", # _Z22mesh_thread_tracepointPU11MTLconstantKjjDv3_jS1_j.air
-            "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/32023/Libraries/lib/clang", #/32023.335/lib/darwin/libtracepoint_rt_osx.metallib",    # _Z22mesh_thread_tracepointPU11MTLconstantKjjDv3_jS1_j.air
-            "/System/Library/Frameworks/CoreImage.framework/CoreImage.metallib",                                                                                # _ZNK9coreimage7Sampler6extentEv.air
-            "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage.metallib",                                                                     # _ZNK9coreimage7Sampler6extentEv.air
+            # GPUCompiler version may differ across macOS versions, so match the framework prefix
+            "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/",
+            "/System/Library/Frameworks/CoreImage.framework/CoreImage.metallib",
+            "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage.metallib",
 
             # Error: multiple symbols ('memcpy')!
             "/System/Library/Frameworks/MLCompute.framework/Versions/A/Resources/default.metallib",

@@ -1,12 +1,12 @@
 # MetallibSupportPkg
 
-A collection of utilities related to patching Metal Libraries (`.metallib`) in macOS, specifically with the goal of restoring support for legacy hardware (namely Metal 3802-based GPUs on macOS Sequoia).
+A collection of utilities related to patching Metal Libraries (`.metallib`) in macOS, specifically with the goal of restoring support for legacy hardware (namely Metal 3802-based GPUs on macOS Sequoia and macOS 26).
 
 ## Logic
 
 MetallibSupportPkg houses the `metal_libraries` python library, which was developed to streamline Metal Library patching through the following:
 
-1. Programmatically fetching the latest macOS Sequoia IPSW.
+1. Programmatically fetching the latest macOS Sequoia or macOS 26 IPSW.
 2. Extract the system volume DMG from the IPSW.
 3. If the disk image is AEA encrypted, decrypt using [`aastuff`](https://github.com/dhinakg/aeota).
 4. Mount the disk image, and extract all supported `.metallib` files.
@@ -20,14 +20,14 @@ Notes regarding patching individual `.metallib` files:
     - [metallib/patch.py: `_thin_file()`](./metal_libraries/metallib/patch.py#L218-L270)
 3. `.air` files need to be next decompiled to `.ll` (LLVM IR) using Apple's `metal-objdump` utility.
     - [metallib/patch.py: `_decompile_air_to_ll()`](./metal_libraries/metallib/patch.py#L77-L109)
-4. With the LLVM IR, we can begin patching the AIR version to v26 (compared to Sequoia's v27) as well as other necessary changes.
+4. With the LLVM IR, we can begin patching the AIR version down to v26 (Sequoia uses v27, macOS 26 may use higher) as well as other necessary changes.
     - [metallib/patch.py: `_patch_ll()`](./metal_libraries/metallib/patch.py#L190-L215)
 5. To compile IR to `.air`, we use Apple's `metal` utility.
     - [metallib/patch.py: `_recompile_ll_to_air()`](./metal_libraries/metallib/patch.py#L60-L74)
 7. To pack each `.air` to a `.metallib` collection, we use Apple's `metallib` utility.
     - [metallib/patch.py: `_pack_air_to_metallib()`](./metal_libraries/metallib/patch.py#L112-L124)
 
-Once finished, the resulting `.metallib` files should work with Metal 3802-based GPUs in macOS Sequoia.
+Once finished, the resulting `.metallib` files should work with Metal 3802-based GPUs in macOS Sequoia and macOS 26.
 
 ## Usage
 
@@ -42,7 +42,13 @@ python3 -m pip install -r requirements.txt
 Fetch IPSW URL:
 ```bash
 python3 metallib.py -d
-# Example result: UniversalMac_15.0_24A5279h_Restore.ipsw
+# Fetches latest from both macOS 15 and macOS 26
+
+python3 metallib.py -d --os-version 15
+# Fetch only macOS 15 (Sequoia)
+
+python3 metallib.py -d --os-version 26
+# Fetch only macOS 26
 ```
 
 Extract system volume from IPSW:
@@ -51,7 +57,7 @@ python3 metallib.py -e <path_to_ipsw>
 # Example result: 090-49684-056.dmg
 ```
 
-Fetch Metal libraries from system volume, will extract to `15.x-<build>`:
+Fetch Metal libraries from system volume, will extract to `<version>-<build>`:
 ```bash
 python3 metallib.py -f <path_to_system_volume>
 # Example result: 15.0-24A5279h
@@ -75,6 +81,7 @@ python3 metallib.py -z <path_to_metallib_dir>
 
 ```
 usage: metallib.py [-h] [-d] [-e EXTRACT] [-f FETCH] [-p PATCH] [-b BUILD_SYS_PATCH] [-z BUILD_PKG] [-c]
+                   [--os-version OS_VERSION] [--mmacos-version-min MMACOS_VERSION_MIN]
 
 Download, extract, fetch, and patch Metal libraries.
 
@@ -93,4 +100,8 @@ options:
                         Build a macOS package.
   -c, --continuous-integration
                         Run in continuous integration mode.
+  --os-version OS_VERSION
+                        Target macOS major version (e.g. 15 or 26).
+  --mmacos-version-min MMACOS_VERSION_MIN
+                        Minimum macOS deployment target for Metal recompilation (default: 14.0).
 ```

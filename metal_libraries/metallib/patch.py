@@ -43,7 +43,8 @@ from ..utils.log import log
 
 class MetallibPatch:
 
-    def __init__(self) -> None:
+    def __init__(self, mmacos_version_min: str = "14.0") -> None:
+        self._mmacos_version_min = mmacos_version_min
         self._broken_file_map = {
             "metallib": {
                 "/System/Library/PrivateFrameworks/VectorKit.framework/Versions/A/Resources/default.metallib": [
@@ -67,7 +68,7 @@ class MetallibPatch:
         """
         output = Path(input).with_suffix(".air")
 
-        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", "-mmacos-version-min=14.0", input, "-o", output], capture_output=True, text=True)
+        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", f"-mmacos-version-min={self._mmacos_version_min}", input, "-o", output], capture_output=True, text=True)
         if result.returncode != 0:
             log(result)
             raise Exception(f"Failed to recompile {input}")
@@ -152,10 +153,17 @@ class MetallibPatch:
 
         # Read the metallib file
         metallib_data = Path(input).read_bytes()
-        # 2E000000
-        if metallib_data[:4] != HEADER and metallib_data[4:8] != b"\x2E\x00\x00\x00":
-            print(metallib_data[:4])
+        if metallib_data[:4] != HEADER:
+            print(f"  WARNING: Expected MTLB magic, got {metallib_data[:4]!r} for {input}")
             raise Exception(f"Invalid metallib file: {input}")
+        # Known MTLB version bytes:
+        # - 0x2E000000 (macOS 15 Sequoia)
+        # - 0x01800200 (macOS 26 Tahoe)
+        known_versions = [b"\x2E\x00\x00\x00", b"\x01\x80\x02\x00"]
+        actual_version = metallib_data[4:8]
+        if actual_version not in known_versions:
+            print(f"  WARNING: Unknown MTLB version {actual_version.hex()} for {input} (known: {[v.hex() for v in known_versions]})")
+            print(f"  Attempting to parse anyway...")
 
         # Parse the metallib file for .air files
         directory_offset  = u32(metallib_data, 24)
@@ -190,20 +198,44 @@ class MetallibPatch:
 
     def _patch_ll(self, input: str) -> None:
         """
-        Patch AIR versioning to 2.6
+        Patch AIR versioning to 2.6 and Metal SDK to 3.1
+
+        Uses regex matching to handle both macOS 15 (AIR 2.7, Metal SDK 3.2)
+        and macOS 26+ (potentially higher AIR/SDK versions).
         """
         def patch_line(line: str) -> str:
-            if r'!{i32 2, i32 7, i32 0}' in line:
-                return line.replace("i32 7", "i32 6")
+            # AIR version downgrade: any AIR 2.N where N > 6 → AIR 2.6
+            # macOS 15 uses AIR 2.7, macOS 26 may use 2.8+
+            air_match = re.search(r'!\{i32 2, i32 (\d+), i32 0\}', line)
+            if air_match:
+                air_minor = int(air_match.group(1))
+                if air_minor > 6:
+                    return line.replace(f"i32 {air_minor}, i32 0" + "}", f"i32 6, i32 0" + "}")
 
-            if r'!{!"Metal", i32 3, i32 2, i32 0}' in line:
-                return line.replace("i32 2", "i32 1")
+            # Metal SDK version downgrade: any Metal M.N where (M, N) > (3, 1) → Metal 3.1
+            # macOS 15 uses Metal SDK 3.2, macOS 26 may use 3.3+
+            sdk_match = re.search(r'!\{!"Metal", i32 (\d+), i32 (\d+), i32 0\}', line)
+            if sdk_match:
+                sdk_major = int(sdk_match.group(1))
+                sdk_minor = int(sdk_match.group(2))
+                if sdk_major > 3 or (sdk_major == 3 and sdk_minor > 1):
+                    return line.replace(
+                        f'i32 {sdk_match.group(1)}, i32 {sdk_match.group(2)}, i32 0',
+                        'i32 3, i32 1, i32 0'
+                    )
 
-            if r'@__air_sampler_state' in line and r'[2 x i64]' in line:
-                match = re.search(r"\[2 x i64\] \[i64 ([0-9]+), i64 0\]", line)
-                if match:
-                    return line.replace(match.group(0), f"i64 {match.group(1)}")
-                return line.replace("[2 x i64]", "i64")
+            # Sampler state simplification: [N x i64] → i64 (N ≥ 2)
+            # macOS 15 uses [2 x i64], macOS 26 may use larger arrays
+            if r'@__air_sampler_state' in line:
+                sampler_match = re.search(r'\[(\d+) x i64\]', line)
+                if sampler_match:
+                    array_size = int(sampler_match.group(1))
+                    if array_size >= 2:
+                        # Try to match the full initializer pattern
+                        init_match = re.search(r'\[' + str(array_size) + r' x i64\] \[i64 ([0-9]+)(?:, i64 0)*\]', line)
+                        if init_match:
+                            return line.replace(init_match.group(0), f"i64 {init_match.group(1)}")
+                        return line.replace(f"[{array_size} x i64]", "i64")
 
             return line
 
@@ -298,6 +330,10 @@ class MetallibPatch:
                 if Path(tmp_output / function_name).exists():
                     raise
                 if contents == b"":
+                    continue
+                # Skip entries that are not valid AIR bitcode
+                # Valid AIR bitcode starts with LLVM bitcode wrapper magic 0xDEC0170B
+                if len(contents) < 20 or contents[:4] != b"\xde\xc0\x17\x0b":
                     continue
 
                 is_broken = False

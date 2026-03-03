@@ -12,10 +12,12 @@ from .. import __version__
 
 class FetchIPSW:
 
-    def __init__(self, builds_to_ignore: list = [], minimum_version: str = "15", maximum_version: str = "15.99.99") -> None:
+    def __init__(self, builds_to_ignore: list = [], os_versions: list = [15, 26]) -> None:
         self._builds_to_ignore = builds_to_ignore
-        self._minimum_version  = packaging.version.parse(minimum_version)
-        self._maximum_version  = packaging.version.parse(maximum_version)
+        self._version_ranges = [
+            (packaging.version.parse(str(v)), packaging.version.parse(f"{v}.99.99"))
+            for v in os_versions
+        ]
 
 
     def _fetch_apple_db_items(self):
@@ -45,13 +47,16 @@ class FetchIPSW:
 
             try:
                 version = packaging.version.parse(item["version"].split(" ")[0])
-                if version < self._minimum_version or version > self._maximum_version:
+                if not any(lo <= version <= hi for lo, hi in self._version_ranges):
                     continue
             except packaging.version.InvalidVersion:
                 continue
 
             # We use MacPro7,1 to filter out any Apple silicon-only builds.
-            if "MacPro7,1" not in item.get("deviceMap", []):
+            # macOS 26+ may have dropped MacPro7,1 from the device map, so only
+            # enforce this filter for versions below 26.
+            major_version = int(item["version"].split(" ")[0].split(".")[0])
+            if major_version < 26 and "MacPro7,1" not in item.get("deviceMap", []):
                 continue
 
             name = "macOS"

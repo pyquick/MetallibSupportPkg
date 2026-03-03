@@ -19,12 +19,13 @@ from .utils.ci_info      import CIInfo
 from .utils.patch_format import GenerateSysPatchDictionary
 
 
-def download(ci: bool = False) -> str:
+def download(ci: bool = False, os_version: int = None) -> str:
     """
     Fetches and downloads latest IPSW
 
     Parameters:
     - ci: boolean, if True, fetches the latest IPSW for CI
+    - os_version: int, target macOS major version (e.g. 15 or 26). If None, fetches both.
 
     Returns:
     - IPSW file path
@@ -32,7 +33,8 @@ def download(ci: bool = False) -> str:
     builds_to_ignore = []
     if ci is True:
         builds_to_ignore = CIInfo().published_releases()
-    url = FetchIPSW(builds_to_ignore).fetch()
+    os_versions = [os_version] if os_version else [15, 26]
+    url = FetchIPSW(builds_to_ignore, os_versions=os_versions).fetch()
     if url is None or url == {}:
         return ""
     file = DownloadFile(url).file()
@@ -72,20 +74,22 @@ def fetch(input: str = "/", output: str = None) -> str:
     return MetallibFetch(input, output).backup()
 
 
-def patch(input: str = "/", multiprocessing: bool = False) -> None:
+def patch(input: str = "/", multiprocessing: bool = False, mmacos_version_min: str = "14.0") -> None:
     """
     Patches all .metallib files in a given path
 
     Parameters:
     - input: str, path to the system volume or DMG
+    - mmacos_version_min: str, minimum macOS deployment target for recompilation
 
     Returns:
     - None
     """
+    patcher = MetallibPatch(mmacos_version_min=mmacos_version_min)
     if Path(input).is_dir():
-        MetallibPatch().patch_all(input, multiprocessing)
+        patcher.patch_all(input, multiprocessing)
     else:
-        MetallibPatch().patch(input, input)
+        patcher.patch(input, input)
 
 
 def build_pkg(input: str, pkg_signing_identity: str = None, notarization_team_id: str = None, notarization_apple_id: str = None, notarization_password: str = None) -> None:
@@ -102,7 +106,7 @@ def build_pkg(input: str, pkg_signing_identity: str = None, notarization_team_id
             input:        f"/Library/Application Support/Dortania/MetallibSupportPkg/{name}",
             "Info.plist": f"/Library/Application Support/Dortania/MetallibSupportPkg/{name}/Info.plist",
         },
-        pkg_welcome=f"# MetallibSupportPkg\n\nThis package installs patched Metal Libraries for usage with OpenCore Legacy Patcher specifically targeting Macs with Metal 3802-based Graphics cards on macOS 15, Sequoia and newer.\n\nAffected graphics card models:\n\n* Intel Ivy Bridge and Haswell iGPUs\n* Nvidia Kepler dGPUs\n\n----------\nInstall destination:\n\n* `/Library/Application Support/Dortania/MetallibSupportPkg/{Path(input).name}`\n\n----------\n\nFor more information, see the [MetallibSupportPkg repository]({__url__}).",
+        pkg_welcome=f"# MetallibSupportPkg\n\nThis package installs patched Metal Libraries for usage with OpenCore Legacy Patcher specifically targeting Macs with Metal 3802-based Graphics cards on macOS 15 (Sequoia), macOS 26, and newer.\n\nAffected graphics card models:\n\n* Intel Ivy Bridge and Haswell iGPUs\n* Nvidia Kepler dGPUs\n\n----------\nInstall destination:\n\n* `/Library/Application Support/Dortania/MetallibSupportPkg/{Path(input).name}`\n\n----------\n\nFor more information, see the [MetallibSupportPkg repository]({__url__}).",
         pkg_title=f"MetallibSupportPkg for {name}",
         pkg_as_distribution=True,
         **({"pkg_signing_identity": pkg_signing_identity} if pkg_signing_identity else {}),
@@ -145,19 +149,21 @@ def main() -> None:
     parser.add_argument("--notarization-apple-id",        type=str,            help="Apple Notarization Apple ID.")
     parser.add_argument("--notarization-password",        type=str,            help="Apple Notarization Password.")
     parser.add_argument("-c", "--continuous-integration", action="store_true", help="Run in continuous integration mode.")
+    parser.add_argument("--os-version",                  type=int,            help="Target macOS major version (e.g. 15 or 26). If not specified, processes all supported versions.")
+    parser.add_argument("--mmacos-version-min",          type=str, default="14.0", help="Minimum macOS deployment target for Metal recompilation (default: 14.0).")
 
     args = parser.parse_args()
 
     result = ""
 
     if args.download:
-        result = download(args.continuous_integration)
+        result = download(args.continuous_integration, args.os_version)
     elif args.extract:
         result = extract(args.extract)
     elif args.fetch:
         result = fetch(args.fetch)
     elif args.patch:
-        patch(args.patch, args.multiprocessing)
+        patch(args.patch, args.multiprocessing, args.mmacos_version_min)
     elif args.build_sys_patch:
         build_sys_patch(args.build_sys_patch, args.continuous_integration)
     elif args.build_pkg:

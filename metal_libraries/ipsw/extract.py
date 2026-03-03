@@ -6,6 +6,7 @@ import zipfile
 import tempfile
 import plistlib
 import subprocess
+import platform
 
 from pathlib import Path
 
@@ -20,8 +21,12 @@ class IPSWExtract:
         """
         Decrypt an AEA file.
         """
+        arch=platform.machine()
         output = input.with_suffix("")
-        aea_bin = Path(__file__).resolve().parent / "bins" / "aastuff"
+        if arch=="x86_64":
+            aea_bin = Path(__file__).resolve().parent / "bins" / "aastuff"
+        else:
+            aea_bin = Path(__file__).resolve().parent / "bins" / "aastuff-arm"
         if not aea_bin.exists():
             raise FileNotFoundError(f"{aea_bin} not found")
 
