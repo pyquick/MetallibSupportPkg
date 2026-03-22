@@ -55,7 +55,7 @@ jobs:
 
       - name: Download latest Tahoe IPSW
         run: |
-          IPSW_FILE=$(python3 metallib.py --download --os-version 26)
+          IPSW_FILE=$(python3 metallib.py --download --continuous-integration)
           echo "IPSW_FILE=${IPSW_FILE}" >> $GITHUB_OUTPUT
         id: download
 
