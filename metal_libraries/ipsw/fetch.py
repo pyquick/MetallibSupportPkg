@@ -2,6 +2,7 @@
 fetch.py: Fetch latest IPSW images for macOS
 """
 
+import sys
 import plistlib
 import packaging.version
 
@@ -9,6 +10,11 @@ from .manifest import MetallibSupportPkgManifest
 
 from ..network import NetworkUtilities
 from .. import __version__
+
+
+def _log(msg: str) -> None:
+    """Log to stderr to avoid polluting stdout (used for GITHUB_OUTPUT)"""
+    print(msg, file=sys.stderr)
 
 
 class FetchIPSW:
@@ -35,15 +41,15 @@ class FetchIPSW:
             # }
         ]
 
-        print(f"[IPSW Fetch] Querying AppleDB for macOS versions: {self._os_versions}")
-        print(f"[IPSW Fetch] Builds to ignore (CI skip list): {self._builds_to_ignore}")
+        _log(f"[IPSW Fetch] Querying AppleDB for macOS versions: {self._os_versions}")
+        _log(f"[IPSW Fetch] Builds to ignore (CI skip list): {self._builds_to_ignore}")
 
         apple_db = NetworkUtilities().get("https://api.appledb.dev/ios/macOS/main.json")
         if apple_db is None:
-            print("[IPSW Fetch] ERROR: Failed to fetch from AppleDB API")
+            _log("[IPSW Fetch] ERROR: Failed to fetch from AppleDB API")
             return []
 
-        print(f"[IPSW Fetch] Received {len(apple_db.json())} items from AppleDB")
+        _log(f"[IPSW Fetch] Received {len(apple_db.json())} items from AppleDB")
 
         apple_db = apple_db.json()
         filtered_count = 0
@@ -107,8 +113,8 @@ class FetchIPSW:
                 # We found a valid source, so don't check any other sources (so that we prefer IPSWs over OTAs)
                 break
 
-        print(f"[IPSW Fetch] Filtered {filtered_count} items (internal/rsr/ignored/version mismatch)")
-        print(f"[IPSW Fetch] Found {len(installers)} valid installers")
+        _log(f"[IPSW Fetch] Filtered {filtered_count} items (internal/rsr/ignored/version mismatch)")
+        _log(f"[IPSW Fetch] Found {len(installers)} valid installers")
 
         # Deduplicate builds
         installers_by_build = {}
@@ -121,11 +127,11 @@ class FetchIPSW:
         deduplicated = [variants[0] for variants in installers_by_build.values()]
         deduplicated.sort(key=lambda x: (x["Variant"] == "Public", x["Date"]), reverse=True)
 
-        print(f"[IPSW Fetch] After deduplication: {len(deduplicated)} unique builds")
+        _log(f"[IPSW Fetch] After deduplication: {len(deduplicated)} unique builds")
 
         if deduplicated:
             best = deduplicated[0]
-            print(f"[IPSW Fetch] Best match: {best['Name']} {best['Version']} ({best['Build']}) - {best['Type']} - {best['Variant']}")
+            _log(f"[IPSW Fetch] Best match: {best['Name']} {best['Version']} ({best['Build']}) - {best['Type']} - {best['Variant']}")
 
         return deduplicated
 
@@ -143,13 +149,13 @@ class FetchIPSW:
         """
         Fetch latest macOS installer
         """
-        print("[IPSW Fetch] Starting IPSW fetch...")
+        _log("[IPSW Fetch] Starting IPSW fetch...")
         result = self._fetch_apple_db_items()
         if len(result) == 0:
-            print("[IPSW Fetch] ERROR: No valid IPSW found (all builds filtered or AppleDB empty)")
+            _log("[IPSW Fetch] ERROR: No valid IPSW found (all builds filtered or AppleDB empty)")
             return {}
         MetallibSupportPkgManifest(result[0]).update_manifest()
         self._save_info(result[0])
-        print(f"[IPSW Fetch] SUCCESS: Selected {result[0]['Version']} ({result[0]['Build']})")
-        print(f"[IPSW Fetch] URL: {result[0]['URL'][:80]}...")
+        _log(f"[IPSW Fetch] SUCCESS: Selected {result[0]['Version']} ({result[0]['Build']})")
+        _log(f"[IPSW Fetch] URL: {result[0]['URL'][:80]}...")
         return result[0]["URL"]
