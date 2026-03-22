@@ -122,14 +122,25 @@ class FetchIPSW:
             installers_by_build.setdefault(installer["Build"], []).append(installer)
 
         for build, installer_variants in installers_by_build.items():
+            # Prefer IPSW over OTA (IPSW is a complete image, OTA may have access issues)
             installer_variants.sort(key=lambda x: (x["Type"] != "ipsw", x["Variant"] != "Public"))
 
         deduplicated = [variants[0] for variants in installers_by_build.values()]
-        deduplicated.sort(key=lambda x: (x["Variant"] == "Public", x["Date"]), reverse=True)
+        deduplicated.sort(key=lambda x: (x["Variant"] == "Public", x["Type"] == "ipsw", x["Date"]), reverse=True)
 
         _log(f"[IPSW Fetch] After deduplication: {len(deduplicated)} unique builds")
 
+        # Filter out OTAs - only keep IPSW for reliable downloads
+        ipsw_only = [x for x in deduplicated if x["Type"] == "ipsw"]
+        _log(f"[IPSW Fetch] IPSW candidates: {len(ipsw_only)}")
+
+        if ipsw_only:
+            best = ipsw_only[0]
+            _log(f"[IPSW Fetch] Best match: {best['Name']} {best['Version']} ({best['Build']}) - {best['Type']} - {best['Variant']}")
+            return ipsw_only
+
         if deduplicated:
+            _log("[IPSW Fetch] WARNING: No IPSW available, falling back to OTA")
             best = deduplicated[0]
             _log(f"[IPSW Fetch] Best match: {best['Name']} {best['Version']} ({best['Build']}) - {best['Type']} - {best['Variant']}")
 
