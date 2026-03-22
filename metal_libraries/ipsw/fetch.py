@@ -52,12 +52,6 @@ class FetchIPSW:
             except packaging.version.InvalidVersion:
                 continue
 
-            # We use MacPro7,1 to filter out any Apple silicon-only builds.
-            # macOS 26+ may have dropped MacPro7,1 from the device map, so only
-            # enforce this filter for versions below 26.
-            major_version = int(item["version"].split(" ")[0].split(".")[0])
-            if major_version < 26 and "MacPro7,1" not in item.get("deviceMap", []):
-                continue
 
             name = "macOS"
             if "appledbWebImage" in item:
