@@ -26,10 +26,10 @@ class MetallibFetch:
         """
         return [
             # Error: The file was not recognized as a valid object file
-            # GPUCompiler version may differ across macOS versions, so match the framework prefix
-            "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/",
-            "/System/Library/Frameworks/CoreImage.framework/CoreImage.metallib",
-            "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage.metallib",
+            "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/32023/Libraries/lib/clang", #/32023.335/lib/darwin/libtracepoint_rt_iosmac.metallib", # _Z22mesh_thread_tracepointPU11MTLconstantKjjDv3_jS1_j.air
+            "/System/Library/PrivateFrameworks/GPUCompiler.framework/Versions/32023/Libraries/lib/clang", #/32023.335/lib/darwin/libtracepoint_rt_osx.metallib",    # _Z22mesh_thread_tracepointPU11MTLconstantKjjDv3_jS1_j.air
+            "/System/Library/Frameworks/CoreImage.framework/CoreImage.metallib",                                                                                # _ZNK9coreimage7Sampler6extentEv.air
+            "/System/Library/Frameworks/CoreImage.framework/Versions/A/CoreImage.metallib",                                                                     # _ZNK9coreimage7Sampler6extentEv.air
 
             # Error: multiple symbols ('memcpy')!
             "/System/Library/Frameworks/MLCompute.framework/Versions/A/Resources/default.metallib",
