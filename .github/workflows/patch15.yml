@@ -1,0 +1,117 @@
+name: CI - Patch Sequoia latest metallib's
+
+on:
+  schedule:
+  - cron: "0 */2 * * *"
+  push:
+    branches-ignore:
+      - gh-pages
+  workflow_dispatch:
+
+concurrency:
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+  group: ${{ github.workflow }}
+
+env:
+  PYTHONUNBUFFERED: 1
+
+jobs:
+  build:
+    name: CI - Patch macOS Sequoia metallib's
+    runs-on: macos-26
+
+    strategy:
+      fail-fast: false
+     
+
+    env:
+      # GitHub Releases API
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.14
+
+      - name: Free up space
+        run: |
+          mkdir empty_dir
+          rsync -a --delete empty_dir/ /Applications/Xcode_16.1_beta.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_16_beta_6.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.3.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.2.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.1.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_15.0.1.app/
+          rsync -a --delete empty_dir/ /Applications/Xcode_14.3.1.app/
+          rsync -a --delete empty_dir/ /Users/runner/Library/Android/sdk/
+          df -h
+
+      - name: Install dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Download latest Tahoe IPSW
+        run: |
+          IPSW_FILE=$(python3 metallib.py --download --continuous-integration --os-version 15)
+          echo "IPSW_FILE=${IPSW_FILE}" >> $GITHUB_OUTPUT
+        id: download
+
+      - name: Extract system volume
+        if: steps.download.outputs.IPSW_FILE != ''
+        run: |
+          DMG_FILE=$(sudo python3 metallib.py --extract "${{ steps.download.outputs.IPSW_FILE }}")
+          echo "DMG_FILE=${DMG_FILE}" >> $GITHUB_OUTPUT
+        id: extract
+
+      - name: Fetch metal libraries
+        if: steps.extract.outputs.DMG_FILE != ''
+        run: |
+          BACKUP_FOLDER=$(python3 metallib.py --fetch "${{ steps.extract.outputs.DMG_FILE }}")
+          echo "BACKUP_FOLDER=${BACKUP_FOLDER}" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
+        id: fetch
+
+      - name: Patch metal libraries
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        run: python3 metallib.py --patch ${{ steps.fetch.outputs.BACKUP_FOLDER }}
+
+      - name: Build sys_patch_dict.py
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        run: python3 metallib.py --build-sys-patch ${{ steps.fetch.outputs.BACKUP_FOLDER }} --continuous-integration
+
+      - name: Build Package
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        run: python3 metallib.py --build-pkg ${{ steps.fetch.outputs.BACKUP_FOLDER }}
+      - name: Upload metal libraries to Artifacts
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: MetallibSupportPkg-${{ matrix.os_name }}.pkg
+          path: ./MetallibSupportPkg-*.pkg
+
+      - name: Upload sys_patch_dict.py to Artifacts
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: sys_patch_dict-${{ matrix.os_name }}.py
+          path: sys_patch_dict.py
+
+      - name: Upload manifest to Artifacts
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: manifest-${{ matrix.os_name }}.json
+          path: deploy/manifest.json
+
+      - name: Create GitHub release
+        if: ${{ github.ref == 'refs/heads/main' && steps.fetch.outputs.BACKUP_FOLDER != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            MetallibSupportPkg-*.pkg
+            sys_patch_dict.py
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.fetch.outputs.BACKUP_FOLDER }}
