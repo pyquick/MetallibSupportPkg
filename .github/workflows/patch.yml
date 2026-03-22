@@ -71,6 +71,7 @@ jobs:
         run: |
           BACKUP_FOLDER=$(python3 metallib.py --fetch "${{ steps.extract.outputs.DMG_FILE }}")
           echo "BACKUP_FOLDER=${BACKUP_FOLDER}" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
         id: fetch
 
       - name: Patch metal libraries
