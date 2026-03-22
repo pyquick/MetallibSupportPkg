@@ -32,9 +32,9 @@ def download(ci: bool = False, os_version: int = None) -> str:
     """
     builds_to_ignore = []
     if ci is True:
-        #builds_to_ignore = CIInfo().published_releases()
-        builds_to_ignore = []
-    os_versions = [os_version] if os_version else [15, 26]
+        builds_to_ignore = CIInfo().published_releases()
+        
+    os_versions = [os_version] if os_version else [26]
     url = FetchIPSW(builds_to_ignore, os_versions=os_versions).fetch()
     if url is None or url == {}:
         return ""

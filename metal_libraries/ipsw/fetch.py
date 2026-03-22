@@ -43,7 +43,9 @@ class FetchIPSW:
                 continue
 
             if "build" not in item or item["build"] in self._builds_to_ignore:
-                continue
+                #continue
+                print("Ignore")
+                pass
 
             try:
                 version = packaging.version.parse(item["version"].split(" ")[0])
