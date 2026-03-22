@@ -33,7 +33,7 @@ def download(ci: bool = False, os_version: int = None) -> str:
     builds_to_ignore = []
     if ci is True:
         builds_to_ignore = CIInfo().published_releases()
-        
+
     os_versions = [os_version] if os_version else [26]
     url = FetchIPSW(builds_to_ignore, os_versions=os_versions).fetch()
     if url is None or url == {}:
@@ -101,13 +101,13 @@ def build_pkg(input: str, pkg_signing_identity: str = None, notarization_team_id
     name = Path(input).name
     assert macos_pkg_builder.Packages(
         pkg_output=f"MetallibSupportPkg-{name}.pkg",
-        pkg_bundle_id=f"com.dortania.metallibsupportpkg.{name}",
+        pkg_bundle_id=f"com.pyquick.metallibsupportpkg.{name}",
         pkg_version=__version__,
         pkg_file_structure={
-            input:        f"/Library/Application Support/Dortania/MetallibSupportPkg/{name}",
-            "Info.plist": f"/Library/Application Support/Dortania/MetallibSupportPkg/{name}/Info.plist",
+            input:        f"/Library/Application Support/Pyquick/MetallibSupportPkg/{name}",
+            "Info.plist": f"/Library/Application Support/Pyquick/MetallibSupportPkg/{name}/Info.plist",
         },
-        pkg_welcome=f"# MetallibSupportPkg\n\nThis package installs patched Metal Libraries for usage with OpenCore Legacy Patcher specifically targeting Macs with Metal 3802-based Graphics cards on macOS 15 (Sequoia), macOS 26, and newer.\n\nAffected graphics card models:\n\n* Intel Ivy Bridge and Haswell iGPUs\n* Nvidia Kepler dGPUs\n\n----------\nInstall destination:\n\n* `/Library/Application Support/Dortania/MetallibSupportPkg/{Path(input).name}`\n\n----------\n\nFor more information, see the [MetallibSupportPkg repository]({__url__}).",
+        pkg_welcome=f"# MetallibSupportPkg\n\nThis package installs patched Metal Libraries for usage with OpenCore Legacy Patcher specifically targeting Macs with Metal 3802-based Graphics cards on macOS 15 (Sequoia), macOS 26, and newer.\n\nAffected graphics card models:\n\n* Intel Ivy Bridge and Haswell iGPUs\n* Nvidia Kepler dGPUs\n\n----------\nInstall destination:\n\n* `/Library/Application Support/Pyquick/MetallibSupportPkg/{Path(input).name}`\n\n----------\n\nFor more information, see the [MetallibSupportPkg repository]({__url__}).",
         pkg_title=f"MetallibSupportPkg for {name}",
         pkg_as_distribution=True,
         **({"pkg_signing_identity": pkg_signing_identity} if pkg_signing_identity else {}),
