@@ -30,9 +30,10 @@ def download(ci: bool = False, os_version: int = None) -> str:
     Returns:
     - IPSW file path
     """
-    builds_to_ignore = []
+    builds_to_ignore = ["25D771280a"]
     if ci is True:
         builds_to_ignore = CIInfo().published_releases()
+        builds_to_ignore.append("25D771280a")
 
     os_versions = [os_version] if os_version else [26]
     url = FetchIPSW(builds_to_ignore, os_versions=os_versions).fetch()
