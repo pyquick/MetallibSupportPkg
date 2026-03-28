@@ -11,7 +11,7 @@ on:
 concurrency:
   cancel-in-progress: ${{ github.event_name == 'push' }}
   group: ${{ github.workflow }}
-
+permissions: write-all
 env:
   PYTHONUNBUFFERED: 1
 
