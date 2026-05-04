@@ -10,7 +10,7 @@ from datetime import datetime
 from ..network import NetworkUtilities
 
 
-METALLIB_API_LINK = "https://dortania.github.io/MetallibSupportPkg/manifest.json"
+METALLIB_API_LINK = "https://pyquick.github.io/MetallibSupportPkg/manifest.json"
 
 
 class MetallibSupportPkgManifest:
@@ -46,7 +46,7 @@ class MetallibSupportPkgManifest:
             "sha1sum":   self._latest_ipsw["Hash"],
             "name":      f"MetallibSupportPkg {self._latest_ipsw['Version']} build {self._latest_ipsw['Build']}",
             "seen":      datetime.now().strftime("%Y-%m-%d"),
-            "url":       f"https://github.com/dortania/MetallibSupportPkg/releases/download/{version}-{self._latest_ipsw['Build']}/MetallibSupportPkg-{version}-{self._latest_ipsw['Build']}.pkg",
+            "url":       f"https://github.com/pyquick/MetallibSupportPkg/releases/download/{version}-{self._latest_ipsw['Build']}/MetallibSupportPkg-{version}-{self._latest_ipsw['Build']}.pkg",
         }
 
         return manifest
