@@ -213,7 +213,7 @@ class MetallibPatch:
                     return line.replace(f"i32 {air_minor}, i32 0" + "}", f"i32 6, i32 0" + "}")
 
             # Metal SDK version downgrade: any Metal M.N where (M, N) > (3, 1) → Metal 3.1
-            # macOS 15 uses Metal SDK 3.2, macOS 26 may use 3.3+
+            # macOS 15 uses Metal SDK 3.2, macOS 26 use SDK 4
             sdk_match = re.search(r'!\{!"Metal", i32 (\d+), i32 (\d+), i32 0\}', line)
             if sdk_match:
                 sdk_major = int(sdk_match.group(1))
