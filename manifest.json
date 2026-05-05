@@ -133,5 +133,14 @@
         "name": "MetallibSupportPkg 26.0 build 25A354",
         "seen": "2026-05-05",
         "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.0-25A354/MetallibSupportPkg-26.0-25A354.pkg"
+    },
+    {
+        "build": "24G5065c",
+        "version": "15.6",
+        "date": "2025-06-30",
+        "sha1sum": "5d2fea929a491ba71fee33dfc2fac1c645c10093",
+        "name": "MetallibSupportPkg 15.6 beta 2 build 24G5065c",
+        "seen": "2026-05-05",
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/15.6-24G5065c/MetallibSupportPkg-15.6-24G5065c.pkg"
     }
 ]
