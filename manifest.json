@@ -9,15 +9,6 @@
         "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.4.1-25E253/MetallibSupportPkg-26.4.1-25E253.pkg"
     },
     {
-        "build": "25E246",
-        "version": "26.4",
-        "date": "2026-03-24",
-        "sha1sum": "177baf85518c6e9cebf83990e11e59259b5c97dd",
-        "name": "MetallibSupportPkg 26.4 build 25E246",
-        "seen": "2026-05-05",
-        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.4-25E246/MetallibSupportPkg-26.4-25E246.pkg"
-    },
-    {
         "build": "25D2140",
         "version": "26.3.2",
         "date": "2026-03-10",
@@ -79,5 +70,14 @@
         "name": "MetallibSupportPkg 26.0 build 25A354",
         "seen": "2026-05-05",
         "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.0-25A354/MetallibSupportPkg-26.0-25A354.pkg"
+    },
+    {
+        "build": "24B2091",
+        "version": "15.1.1",
+        "date": "2024-11-19",
+        "sha1sum": "f9c870544bc208d9574eb07d8226cd80a77e13e2",
+        "name": "MetallibSupportPkg 15.1.1 build 24B2091",
+        "seen": "2026-05-05",
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/15.1.1-24B2091/MetallibSupportPkg-15.1.1-24B2091.pkg"
     }
 ]
