@@ -367,5 +367,14 @@
         "name": "MetallibSupportPkg 15.2 beta 4 build 24C5089c",
         "seen": "2026-05-07",
         "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/15.2-24C5089c/MetallibSupportPkg-15.2-24C5089c.pkg"
+    },
+    {
+        "build": "24B5035e",
+        "version": "15.1",
+        "date": "2024-08-28",
+        "sha1sum": "db7973e165c74a95c02bcdad112dd68f25b75895",
+        "name": "MetallibSupportPkg 15.1 beta 3 build 24B5035e",
+        "seen": "2026-05-08",
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/15.1-24B5035e/MetallibSupportPkg-15.1-24B5035e.pkg"
     }
 ]
