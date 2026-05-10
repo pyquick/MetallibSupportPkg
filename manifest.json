@@ -216,6 +216,15 @@
         "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.1-25B78/MetallibSupportPkg-26.1-25B78.pkg"
     },
     {
+        "build": "24G325",
+        "version": "15.7.2",
+        "date": "2025-11-03",
+        "sha1sum": "385f3b668ec284e5dba3956b59c53175721dda94",
+        "name": "MetallibSupportPkg 15.7.2 build 24G325",
+        "seen": "2026-05-10",
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/15.7.2-24G325/MetallibSupportPkg-15.7.2-24G325.pkg"
+    },
+    {
         "build": "25B77",
         "version": "26.1",
         "date": "2025-10-28",
