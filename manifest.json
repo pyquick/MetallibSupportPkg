@@ -1,1 +1,20 @@
-
+[
+    {
+        "build": "25F80",
+        "version": "26.5.1",
+        "date": "2026-06-01",
+        "sha1sum": "fee18c64537aaeb934e55b9578e5cddcc2c9218a",
+        "name": "MetallibSupportPkg 26.5.1 build 25F80",
+        "seen": "2026-06-01",
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.5.1-25F80/MetallibSupportPkg-26.5.1-25F80.pkg"
+    },
+    {
+        "build": "24A5289g",
+        "version": "15.0",
+        "date": "2024-07-10",
+        "sha1sum": "83aed8094adf416aa39c3822f86eebe593eb251d",
+        "name": "MetallibSupportPkg 15.0 beta 3 build 24A5289g",
+        "seen": "2026-06-01",
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/15.0-24A5289g/MetallibSupportPkg-15.0-24A5289g.pkg"
+    }
+]
