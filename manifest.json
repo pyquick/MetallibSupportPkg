@@ -1,1 +1,11 @@
-
+[
+    {
+        "build": "25G5043d",
+        "version": "26.6",
+        "date": "2026-06-15",
+        "sha1sum": "ca229e5b26f0e4ad815d376d6fe6ab1d3fc574c4",
+        "name": "MetallibSupportPkg 26.6 beta 2 build 25G5043d",
+        "seen": "2026-06-15",
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.6-25G5043d/MetallibSupportPkg-26.6-25G5043d.pkg"
+    }
+]
