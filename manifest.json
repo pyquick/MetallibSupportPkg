@@ -1,11 +1,11 @@
 [
     {
-        "build": "24A5331b",
-        "version": "15.0",
-        "date": "2024-08-28",
-        "sha1sum": "25ed7f8d4d085f77b648d1a1969b94fd968e26e0",
-        "name": "MetallibSupportPkg 15.0 beta 8 build 24A5331b",
+        "build": "25G76",
+        "version": "26.6.1",
+        "date": "2026-08-06",
+        "sha1sum": "f9d12dadabc5a5b3090bc92c6f4027961a999024",
+        "name": "MetallibSupportPkg 26.6.1 build 25G76",
         "seen": "2026-08-07",
-        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/15.0-24A5331b/MetallibSupportPkg-15.0-24A5331b.pkg"
+        "url": "https://github.com/pyquick/MetallibSupportPkg/releases/download/26.6.1-25G76/MetallibSupportPkg-26.6.1-25G76.pkg"
     }
 ]
